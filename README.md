@@ -21,15 +21,32 @@ The package name `@yourorg/dominion` is a placeholder until the scope is decided
 ## Quick start
 
 ```sh
-npm install -D @yourorg/dominion
+npm install -D @yourorg/dominion && npx dominion ui
+```
+
+The browser UI opens with two tabs:
+
+- **Setup** walks you through everything as a checklist. Each step's button maps to a CLI command:
+  1. **Playwright:** sets it up if the project has none (TypeScript or JavaScript, Chromium).
+  2. **Claude API key.**
+  3. **DOMinion project:** creates `dominion.config.ts`. In a repo with an existing suite, it shows the layout it detected first.
+  4. **Your app:** base URL, login page, and the page that proves you are logged in.
+  5. **Roles and credentials.**
+  6. **Login script:** *Detect from login page* reads your form and writes `dominion/auth/login.ts` for you.
+  7. **Test login.**
+- **Minion runner** unlocks when nothing is left to do. It starts task and crawl runs, shows them live, and holds plan review, flow selection and results.
+
+Credentials and the API key are saved to `.env.local`, which Setup adds to `.gitignore` first. They are write-only: the UI shows "saved" or "not set", never the values. The UI only listens on 127.0.0.1 and needs the link `dominion ui` prints, because it carries a per-start token.
+
+Prefer the terminal? The same setup from the CLI:
+
+```sh
 npx dominion init --base-url https://staging.example.com
 # fill in .env.local, adjust the selectors in dominion/auth/login.ts
 npx dominion auth staging
 npx dominion task staging "write tests for the add to cart workflow"
 npx dominion run
 ```
-
-Prefer a browser? `npx dominion ui` starts the local UI and does the same: start screen, live run view, plan review, flow selection and results.
 
 ### What `init` creates
 

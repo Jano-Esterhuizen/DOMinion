@@ -80,7 +80,7 @@ export class RunStore {
 
   constructor(
     private readonly paths: Pick<ProjectPaths, "runsDir">,
-    readonly redactor: Redactor,
+    public redactor: Redactor,
   ) {}
 
   get runsDir(): string {

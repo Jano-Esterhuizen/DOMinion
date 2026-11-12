@@ -5,6 +5,7 @@ import { getEnvironment, getRole, referencedEnvVars } from "../../core/config/re
 import { detectApiCredential } from "../../core/doctor";
 import { errorMessage, isDominionError } from "../../core/errors";
 import type { Choice, Prompter } from "../../core/prompter";
+import type { ProjectContext } from "../project";
 import { packageVersion } from "../../core/package-info";
 
 type LoginState =
@@ -21,21 +22,22 @@ export function publicConfig(loaded: LoadedConfig) {
   return { config, root: loaded.root, configPath: loaded.configPath, envVars, apiCredential: detectApiCredential() ?? null, version: packageVersion() };
 }
 
-export function registerEnvRoutes(app: FastifyInstance, loaded: LoadedConfig): void {
+export function registerEnvRoutes(app: FastifyInstance, ctx: ProjectContext): void {
   const logins = new Map<string, LoginState>();
   const waiters = new Map<string, () => void>();
 
-  app.get("/api/config", async () => publicConfig(loaded));
+  app.get("/api/config", async () => publicConfig(ctx.requireLoaded()));
 
   app.get<{ Params: { env: string; role: string }; Querystring: { validate?: string } }>("/api/envs/:env/roles/:role/status", async (request) => {
     const { env, role } = request.params;
-    const status = await roleStatus({ loaded, envName: env, roleName: role, validate: request.query.validate === "1" });
+    const status = await roleStatus({ loaded: ctx.requireLoaded(), envName: env, roleName: role, validate: request.query.validate === "1" });
     return { ...status, login: logins.get(`${env}/${role}`) ?? null };
   });
 
   app.post<{ Params: { env: string; role: string }; Body: { force?: boolean; headed?: boolean } }>("/api/envs/:env/roles/:role/login", async (request, reply) => {
     const { env, role } = request.params;
     const key = `${env}/${role}`;
+    const loaded = ctx.requireLoaded();
     const roleConfig = getRole(getEnvironment(loaded, env), role);
     const current = logins.get(key);
     if (current && (current.state === "running" || current.state === "waiting_for_user")) return reply.code(409).send({ error: "A login for this role is already in progress.", login: current });

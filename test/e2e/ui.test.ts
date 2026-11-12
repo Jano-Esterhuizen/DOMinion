@@ -24,7 +24,7 @@ beforeAll(async () => {
   const ui = spawnSync(process.execPath, [join(REPO_ROOT, "node_modules", "vite", "bin", "vite.js"), "build", "--config", "src/ui/vite.config.ts"], { cwd: REPO_ROOT, encoding: "utf8" });
   if (ui.status !== 0) throw new Error(`UI build failed:\n${ui.stdout}\n${ui.stderr}`);
   fixture = await startFixtureApp();
-  restoreEnv = setEnv({ ...FIXTURE_ENV });
+  restoreEnv = setEnv({ ...FIXTURE_ENV, ANTHROPIC_API_KEY: "sk-ant-fixture-not-a-real-key" });
   root = makeFixtureConsumer("ui", fixture.url, { files: { "playwright.config.ts": STOCK_PLAYWRIGHT_CONFIG } });
   linkDominionPackage(root);
   const runner = scriptedRunner({
@@ -61,14 +61,20 @@ describe("the local UI", () => {
     expect(response?.status()).toBe(401);
     await anonymous.close();
 
+    // Nobody has logged in yet, so the first visit lands on the Setup tab.
     await page.goto(server.openUrl);
-    await pwExpect(page).toHaveURL(`${server.url}/`);
-    await pwExpect(page.getByRole("heading", { name: "New run" })).toBeVisible();
+    await pwExpect(page).toHaveURL(`${server.url}/setup`);
+    await pwExpect(page.getByRole("heading", { name: "Setup checklist" })).toBeVisible();
   });
 
-  it("logs a role in from the Start screen", async () => {
+  it("logs a role in from the Start screen, which finishes setup", async () => {
+    await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Minion runner" }).click();
+    await pwExpect(page.getByRole("heading", { name: "New run" })).toBeVisible();
+    await pwExpect(page.getByRole("status").filter({ hasText: "Finish setup first" })).toBeVisible();
+    await pwExpect(page.getByRole("button", { name: "Start" })).toBeDisabled();
     await page.getByRole("button", { name: "Log in" }).click();
     await pwExpect(page.locator('[data-status="session-valid"]')).toBeVisible({ timeout: 60_000 });
+    await pwExpect(page.getByRole("status").filter({ hasText: "Finish setup first" })).toHaveCount(0);
   });
 
   it("runs task mode entirely from the UI, surviving a reload mid-run", async () => {
@@ -139,7 +145,7 @@ describe("the local UI", () => {
   });
 
   it("shows settings without secret values", async () => {
-    await page.getByRole("link", { name: "Settings" }).click();
+    await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: /Setup/ }).click();
     await pwExpect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
     const text = await page.locator("main").innerText();
     expect(text).toContain("FX_PASS");

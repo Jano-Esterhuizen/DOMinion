@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ApiError, api, type PublicConfig, type RoleStatusResponse, type RunSummary, usePoll } from "../api";
+import { ApiError, api, type PublicConfig, type RoleStatusResponse, type RunSummary, type SetupResponse, usePoll } from "../api";
 import { AuthBadge, ErrorNote, formatUsd, StatusPill } from "../components";
 import { Link, navigate } from "../router";
 
-export function StartScreen({ config }: { config: PublicConfig }) {
+export function StartScreen({ config, setup, onSetupChanged }: { config: PublicConfig; setup: SetupResponse; onSetupChanged?: () => Promise<void> }) {
+  const locked = !setup.ready;
   const environments = config.config.environments;
   const envNames = Object.keys(environments);
   const [env, setEnv] = useState(envNames[0]!);
@@ -49,10 +50,13 @@ export function StartScreen({ config }: { config: PublicConfig }) {
   useEffect(() => {
     if (!polled?.login) return;
     // After a login finishes, check the saved session for real so the badge says "session valid".
-    if (polled.login.state === "done") void loadStatus(true);
+    if (polled.login.state === "done") {
+      // A first login can be the last setup item: re-check so Start unlocks.
+      void loadStatus(true).then(() => onSetupChanged?.());
+    }
     else if (polled.login.state === "failed") void loadStatus();
     else setStatus((s) => (s ? { ...s, login: polled.login } : s));
-  }, [polled, loadStatus]);
+  }, [polled, loadStatus, onSetupChanged]);
 
   const login = status?.login;
   const strategy = environments[env]?.roles[role]?.strategy ?? "none";
@@ -89,6 +93,11 @@ export function StartScreen({ config }: { config: PublicConfig }) {
 
   return (
     <div className="stack">
+      {locked ? (
+        <div className="note note-warn" role="status">
+          Finish setup first: {setup.remaining} item{setup.remaining === 1 ? "" : "s"} left. <Link to="/setup">Go to Setup</Link>
+        </div>
+      ) : null}
       <section className="card">
         <h2>New run</h2>
         <div className="grid2">
@@ -160,7 +169,7 @@ export function StartScreen({ config }: { config: PublicConfig }) {
           <input type="checkbox" checked={planOnly} onChange={(e) => setPlanOnly(e.target.checked)} /> Stop after planning
         </label>
         <div className="row">
-          <button type="button" className="primary" disabled={busy || (mode === "task" && !request.trim())} onClick={() => void start({ mode, env, role, request: request.trim(), planOnly })}>
+          <button type="button" className="primary" disabled={locked || busy || (mode === "task" && !request.trim())} onClick={() => void start({ mode, env, role, request: request.trim(), planOnly })}>
             Start
           </button>
           <span className="muted">
@@ -182,10 +191,10 @@ export function StartScreen({ config }: { config: PublicConfig }) {
               </option>
             ))}
           </select>
-          <button type="button" disabled={!planPath || busy} onClick={() => void start({ mode: "generate", planPath })}>
+          <button type="button" disabled={locked || !planPath || busy} onClick={() => void start({ mode: "generate", planPath })}>
             Generate tests
           </button>
-          <button type="button" disabled={busy || !specs.tests.length} onClick={() => void start({ mode: "heal", env, role })}>
+          <button type="button" disabled={locked || busy || !specs.tests.length} onClick={() => void start({ mode: "heal", env, role })}>
             Heal generated tests ({specs.tests.length})
           </button>
         </div>

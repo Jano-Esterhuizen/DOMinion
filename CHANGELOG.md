@@ -29,6 +29,12 @@ First release.
   - Detection and a project profile, plus `playwright.dominion.config.ts` that extends your config without changing it.
   - Generated tests reuse your fixtures, page objects, naming and auth setup.
   - Hand-written files are never edited; changes to them come as proposed diffs. Flows your suite already covers are skipped, and `doctor` checks for profile drift.
+- **Setup tab:** `npx dominion ui` works in a project with nothing set up yet, and a Setup checklist covers what `init` and its next steps do:
+  - sets up Playwright and creates the DOMinion config, showing the detected layout first for existing suites;
+  - edits the app's settings, adds and removes roles, and saves credentials write-only to `.env.local`;
+  - writes the login script from a form it fills in by detecting the login page's fields, then runs a test login.
+
+  Minion runner (task and crawl runs) unlocks when the checklist is done. Edits to `dominion.config.ts` only touch plain values and keep comments; computed values are left alone. Running `npx dominion` on its own now says how to get started.
 - **Local UI:**
   - Start, Run, Flows, Plan review, Results and Settings screens, with a live event stream that survives a page reload.
   - Binds to 127.0.0.1 and requires a per-start token. Host and Origin headers are checked.

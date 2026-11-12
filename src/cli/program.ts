@@ -30,5 +30,23 @@ export function createProgram(): Command {
   registerRunsCommand(program);
   registerPromptsCommand(program);
   registerUiCommand(program);
+  // `npx dominion` on its own: say how to get started instead of a wall of help.
+  program.allowExcessArguments(true).action(() => {
+    if (program.args.length) {
+      program.error(`error: unknown command '${program.args[0]}'. Run \`npx dominion --help\` to see the commands.`, { code: "commander.unknownCommand" });
+    }
+    process.stdout.write(
+      [
+        `DOMinion ${packageVersion()}: AI-driven Playwright test authoring.`,
+        "",
+        "Get started:",
+        "  npx dominion ui      open the browser UI; its Setup tab walks you through everything",
+        "  npx dominion init    or set up from the terminal",
+        "",
+        "All commands: npx dominion --help",
+        "",
+      ].join("\n"),
+    );
+  });
   return program;
 }

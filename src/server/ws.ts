@@ -1,12 +1,12 @@
 import type { FastifyInstance } from "fastify";
 import type { DominionEvent } from "../core/events";
-import type { RunManager } from "../core/runs/manager";
+import type { ProjectContext } from "./project";
 
 /**
  * WS /api/runs/:id/events: replays events.jsonl (after ?after=<seq>) and then streams live events,
  * so a page reload resumes the live view without gaps or duplicates.
  */
-export function registerEventStream(app: FastifyInstance, manager: RunManager): void {
+export function registerEventStream(app: FastifyInstance, ctx: ProjectContext): void {
   app.get<{ Params: { id: string }; Querystring: { after?: string } }>("/api/runs/:id/events", { websocket: true }, (socket, request) => {
     const runId = request.params.id;
     let lastSent = Number(request.query.after ?? 0) || 0;
@@ -17,6 +17,7 @@ export function registerEventStream(app: FastifyInstance, manager: RunManager): 
     };
     let unsubscribe = () => {};
     try {
+      const manager = ctx.requireManager();
       // Subscribe before replaying; replay is synchronous, so nothing is missed in between.
       unsubscribe = manager.subscribe(runId, send);
       for (const event of manager.events(runId, lastSent)) send(event);

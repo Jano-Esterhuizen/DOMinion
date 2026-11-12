@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import type { Command } from "commander";
 import { DominionError } from "../../core/errors";
 import { startServer } from "../../server";
+import { findProjectRoot } from "../../server/project";
 import { loadCommandContext } from "../context";
 import { color, line, warn } from "../output";
 
@@ -28,10 +29,16 @@ export function registerUiCommand(program: Command): void {
     .action(async (flags: { port: string; open?: boolean }) => {
       const port = Number(flags.port);
       if (!Number.isInteger(port) || port < 0 || port > 65535) throw new DominionError(`--port must be a port number (got "${flags.port}").`, { code: "BAD_FLAG" });
-      const loaded = await loadCommandContext();
+      // A project without dominion.config.ts still gets the UI: the Setup tab creates it.
+      let loaded;
+      try {
+        loaded = await loadCommandContext();
+      } catch (error) {
+        if (!(error instanceof DominionError) || error.code !== "CONFIG_NOT_FOUND") throw error;
+      }
       let server;
       try {
-        server = await startServer({ loaded, port });
+        server = await startServer({ loaded, root: loaded ? undefined : findProjectRoot(process.cwd()), port });
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code === "EADDRINUSE") {
           throw new DominionError(`Port ${port} is already in use.`, { code: "PORT_IN_USE", hint: "Pass another port, for example `npx dominion ui --port 4556`." });
@@ -39,6 +46,7 @@ export function registerUiCommand(program: Command): void {
         throw error;
       }
       line(`${color.bold("DOMinion UI")} running at ${color.cyan(server.openUrl)}`);
+      if (!loaded) line(color.gray(`No dominion.config.ts yet in ${server.project.root}: the Setup tab walks you through it.`));
       line(color.gray("Only this machine can reach it, and only with this link (it carries a one-time token). Press Ctrl+C to stop."));
       if (flags.open !== false) openBrowser(server.openUrl);
       await new Promise<void>((resolve) => {

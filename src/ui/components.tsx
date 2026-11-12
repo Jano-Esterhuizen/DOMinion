@@ -1,4 +1,4 @@
-import { Fragment, type ReactNode } from "react";
+import { Fragment, type ReactNode, useCallback, useState } from "react";
 
 const STATUS_TONE: Record<string, string> = {
   done: "good",
@@ -25,7 +25,34 @@ const STATUS_TONE: Record<string, string> = {
   failed: "bad",
   timedOut: "bad",
   "credentials-missing": "bad",
+  todo: "warn",
+  optional: "muted",
 };
+
+const SETUP_LABEL: Record<string, string> = { done: "done", todo: "to do", optional: "recommended" };
+
+/** A Setup checklist status: done, to do (blocks Minion runner) or recommended. */
+export function SetupPill({ status }: { status: string }) {
+  return <StatusPill status={status} label={SETUP_LABEL[status] ?? status} />;
+}
+
+/** Runs an API call with a busy flag and a friendly error. */
+export function useAction() {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<{ message: string; hint?: string }>();
+  const run = useCallback(async (fn: () => Promise<void>) => {
+    setBusy(true);
+    setError(undefined);
+    try {
+      await fn();
+    } catch (e) {
+      setError({ message: (e as Error).message, hint: (e as { hint?: string }).hint });
+    } finally {
+      setBusy(false);
+    }
+  }, []);
+  return { busy, error, run, setError };
+}
 
 export function StatusPill({ status, label }: { status: string; label?: string }) {
   return (

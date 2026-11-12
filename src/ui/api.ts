@@ -1,8 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { DominionEvent } from "../core/events";
 import type { RunRecord } from "../core/orchestrator/types";
+import type { DetectedLoginForm, LoginFormSpec, LoginScriptState } from "../core/setup/login-builder";
+import type { EnvironmentSetup, RoleSetup, SetupItem, SetupState } from "../core/setup/state";
+import type { SetupJob } from "../server/jobs";
 
-export type { DominionEvent, RunRecord };
+export type { DetectedLoginForm, DominionEvent, EnvironmentSetup, LoginFormSpec, LoginScriptState, RoleSetup, RunRecord, SetupItem, SetupJob };
+
+/** GET /api/setup: the Setup tab's whole state (never contains a secret value). */
+export type SetupResponse = SetupState & { jobs: { playwright: SetupJob | null } };
 
 export class ApiError extends Error {
   constructor(

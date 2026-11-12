@@ -17,11 +17,12 @@ export function usePath(): string {
   return path;
 }
 
-export function Link({ to, children, className }: { to: string; children: ReactNode; className?: string }) {
+export function Link({ to, children, className, current }: { to: string; children: ReactNode; className?: string; current?: boolean }) {
   return (
     <a
       href={to}
       className={className}
+      aria-current={current ? "page" : undefined}
       onClick={(event) => {
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
         event.preventDefault();

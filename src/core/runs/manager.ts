@@ -52,11 +52,24 @@ export class RunManager {
   readonly store: RunStore;
   private readonly live = new Map<string, LiveRun>();
 
+  private current: LoadedConfig;
+
   constructor(
-    readonly loaded: LoadedConfig,
+    loaded: LoadedConfig,
     private readonly options: RunManagerOptions = {},
   ) {
+    this.current = loaded;
     this.store = new RunStore(projectPaths(loaded), redactorFor(loaded));
+  }
+
+  get loaded(): LoadedConfig {
+    return this.current;
+  }
+
+  /** The Setup tab changed dominion.config.ts or .env.local: new runs use the new config and secrets. */
+  setLoaded(loaded: LoadedConfig): void {
+    this.current = loaded;
+    this.store.redactor = redactorFor(loaded);
   }
 
   isLive(runId: string): boolean {

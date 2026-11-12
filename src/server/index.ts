@@ -7,16 +7,22 @@ import type { LoadedConfig } from "../core/config/loader";
 import { DominionError, errorMessage, isDominionError } from "../core/errors";
 import { packageRoot } from "../core/package-info";
 import { activeRedactor } from "../core/redact";
-import { RunManager, type RunManagerOptions } from "../core/runs/manager";
+import type { RunManager, RunManagerOptions } from "../core/runs/manager";
+import { SetupJobs } from "./jobs";
+import { findProjectRoot, ProjectContext } from "./project";
 import { registerEnvRoutes } from "./routes/envs";
 import { registerRunRoutes } from "./routes/runs";
+import { registerSetupRoutes, type SetupRouteOptions } from "./routes/setup";
 import { hostAllowed, newToken, originAllowed, requestToken, sendError, TOKEN_COOKIE, tokensEqual } from "./security";
 import { registerEventStream } from "./ws";
 
 export const DEFAULT_PORT = 4555;
 
 export interface StartServerOptions {
-  loaded: LoadedConfig;
+  /** The project config; omit it when the project has no dominion.config.ts yet (Setup tab). */
+  loaded?: LoadedConfig;
+  /** Project folder when there is no config yet (default: the nearest package.json from cwd). */
+  root?: string;
   /** Default 4555; 0 picks a free port (tests). */
   port?: number;
   token?: string;
@@ -24,11 +30,15 @@ export interface StartServerOptions {
   managerOptions?: RunManagerOptions;
   /** Folder with the built UI (default: dist/ui of this package). */
   uiDir?: string;
+  /** Setup tab seams (tests). */
+  setup?: SetupRouteOptions;
 }
 
 export interface DominionServer {
   app: FastifyInstance;
-  manager: RunManager;
+  project: ProjectContext;
+  /** Undefined until the project has a dominion.config.ts. */
+  manager: RunManager | undefined;
   port: number;
   token: string;
   /** Base URL (no token). */
@@ -50,6 +60,15 @@ const STATUS_BY_CODE: Record<string, number> = {
   PLAN_LOCKED: 409,
   PROPOSAL_STALE: 409,
   PROPOSAL_NOT_PENDING: 409,
+  SETUP_REQUIRED: 409,
+  SETUP_CONFIG_EXISTS: 409,
+  SETUP_PLAYWRIGHT_EXISTS: 409,
+  SETUP_NO_PACKAGE_JSON: 409,
+  SETUP_ROLE_EXISTS: 409,
+  JOB_RUNNING: 409,
+  JOB_NOT_FOUND: 404,
+  LOGIN_SCRIPT_CUSTOM: 409,
+  CONFIG_NOT_EDITABLE: 409,
 };
 
 /**
@@ -59,7 +78,8 @@ const STATUS_BY_CODE: Record<string, number> = {
  */
 export async function startServer(options: StartServerOptions): Promise<DominionServer> {
   const token = options.token ?? newToken();
-  const manager = options.manager ?? new RunManager(options.loaded, options.managerOptions);
+  const root = options.loaded?.root ?? options.root ?? findProjectRoot(process.cwd());
+  const project = new ProjectContext(root, options.loaded, options.managerOptions, options.manager);
   const uiDir = options.uiDir ?? join(packageRoot(), "dist", "ui");
   const app = Fastify({ logger: false, bodyLimit: 2 * 1024 * 1024 });
   let port = options.port ?? DEFAULT_PORT;
@@ -93,9 +113,10 @@ export async function startServer(options: StartServerOptions): Promise<Dominion
     return reply.code(status).send({ error: redact(errorMessage(error)) });
   });
 
-  registerEnvRoutes(app, options.loaded);
-  registerRunRoutes(app, options.loaded, manager);
-  registerEventStream(app, manager);
+  registerSetupRoutes(app, project, new SetupJobs(), options.setup);
+  registerEnvRoutes(app, project);
+  registerRunRoutes(app, project);
+  registerEventStream(app, project);
   app.all("/api/*", async (_request, reply) => sendError(reply, 404, "No such API endpoint."));
 
   if (existsSync(join(uiDir, "index.html"))) {
@@ -115,14 +136,18 @@ export async function startServer(options: StartServerOptions): Promise<Dominion
   const url = `http://127.0.0.1:${port}`;
   return {
     app,
-    manager,
+    project,
+    get manager() {
+      return project.manager;
+    },
     port,
     token,
     url,
     openUrl: `${url}/?token=${token}`,
     async close() {
-      manager.stopAll();
-      await Promise.race([manager.idle(), new Promise((r) => setTimeout(r, 5_000))]);
+      const manager = project.manager;
+      manager?.stopAll();
+      if (manager) await Promise.race([manager.idle(), new Promise((r) => setTimeout(r, 5_000))]);
       await app.close();
     },
   };

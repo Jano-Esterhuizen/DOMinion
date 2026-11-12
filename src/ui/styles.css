@@ -122,7 +122,8 @@ label.checkbox {
 
 select,
 textarea,
-input[type="text"] {
+input[type="text"],
+input[type="password"] {
   font: inherit;
   color: inherit;
   background: var(--bg);
@@ -496,4 +497,106 @@ dl.facts dt {
 
 dl.facts dd {
   margin: 0;
+}
+
+/* Tabs: Setup and Minion runner */
+.tabs a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.tabs a[aria-current="page"] {
+  color: var(--text);
+  background: var(--bg);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.tabs .count {
+  min-width: 1.3rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: var(--warn-bg);
+  color: var(--warn);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+/* Setup tab */
+.step {
+  scroll-margin-top: 1rem;
+}
+
+.checklist {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.joblog {
+  max-height: 260px;
+  overflow: auto;
+  background: var(--code-bg);
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  font: 12px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.files,
+.notes,
+.role-logins {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0;
+  display: grid;
+  gap: 0.3rem;
+}
+
+fieldset.role {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem 0.75rem;
+  margin: 0.75rem 0;
+}
+
+fieldset.role legend {
+  padding: 0 0.35rem;
+}
+
+.row.bottom {
+  align-items: flex-end;
+}
+
+.locator {
+  display: grid;
+  grid-template-columns: 9rem 9rem minmax(0, 1fr);
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0.4rem 0;
+}
+
+.role-login {
+  border-top: 1px solid var(--border);
+  padding-top: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .locator {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    padding: 0.75rem 1rem;
+  }
 }

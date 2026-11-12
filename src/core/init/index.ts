@@ -41,6 +41,11 @@ export interface InitOptions {
   analyzeConventions?: (input: { root: string; scan: ProjectScan; profile: ProjectProfile }) => Promise<string | undefined>;
   /** Shows the detected profile to the user before they confirm it. */
   onProfile?: (source: string, notes: string[]) => void;
+  /**
+   * New projects: add testIgnore to Playwright projects that would also run DOMinion's tests.
+   * Set by the UI (a checkbox); when undefined the prompter asks.
+   */
+  ignoreOverlap?: boolean;
 }
 
 export type InitFileStatus = "created" | "skipped" | "updated";
@@ -86,7 +91,7 @@ export function envPrefix(envName: string): string {
   return envName.toUpperCase().replace(/[^A-Z0-9]+/g, "_");
 }
 
-function normalizeBaseURL(raw: string): string {
+export function normalizeBaseURL(raw: string): string {
   let url: URL;
   try {
     url = new URL(raw.trim());
@@ -350,10 +355,12 @@ export async function runInit(options: InitOptions): Promise<InitResult> {
       const pattern = `**/${relativePosix(dirname(configAbs), testDirAbs)}/**`;
       const names = overlap.map((p) => `"${p}"`).join(", ");
       const one = overlap.length === 1;
-      const consent = await prompter.confirm(
-        `Playwright project${one ? "" : "s"} ${names} would also run DOMinion's generated tests, without DOMinion's session and baseURL. Add testIgnore: "${pattern}" to ${one ? "it" : "them"} in ${chosenConfig}?`,
-        true,
-      );
+      const consent =
+        options.ignoreOverlap ??
+        (await prompter.confirm(
+          `Playwright project${one ? "" : "s"} ${names} would also run DOMinion's generated tests, without DOMinion's session and baseURL. Add testIgnore: "${pattern}" to ${one ? "it" : "them"} in ${chosenConfig}?`,
+          true,
+        ));
       const ignored = consent ? ignoreTestsInProjects(configAbs, overlap, pattern) : { patched: [], skipped: overlap.map((name) => ({ name, reason: "you chose to keep it" })) };
       if (ignored.patched.length) {
         files.push({ path: chosenConfig, status: "updated", detail: `project${ignored.patched.length === 1 ? "" : "s"} ${ignored.patched.map((p) => `"${p}"`).join(", ")} now ${ignored.patched.length === 1 ? "ignores" : "ignore"} ${toPosix(relativePosix(root, testDirAbs))}/ (run those tests with \`npx dominion run\`)` });
