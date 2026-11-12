@@ -1,4 +1,4 @@
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { join } from "node:path";
 import { type Browser, chromium, expect as pwExpect, type Page } from "@playwright/test";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -41,7 +41,13 @@ beforeAll(async () => {
       }
     },
   });
-  server = await startServer({ loaded: await loadConfig({ cwd: root }), port: 0, managerOptions: { runner: runner.runner, skipPreflight: true } });
+  server = await startServer({
+    loaded: await loadConfig({ cwd: root }),
+    port: 0,
+    managerOptions: { runner: runner.runner, skipPreflight: true },
+    // A stand-in for Playwright's UI mode window (the real one is covered in playwright-ui.test.ts).
+    launchPlaywrightUi: ({ cwd }) => spawn(process.execPath, ["-e", "setInterval(() => {}, 1000)"], { cwd, stdio: ["ignore", "pipe", "pipe"] }),
+  });
   browser = await chromium.launch();
   page = await browser.newPage();
 });
@@ -142,6 +148,19 @@ describe("the local UI", () => {
     await flows.getByRole("button", { name: "Plan selected (1)" }).click();
     await pwExpect(page.locator(".pill").first()).toHaveAttribute("data-status", "done", { timeout: 120_000 });
     await pwExpect(page.getByRole("list", { name: "Run log" })).toContainText("plan ready: specs/login.md");
+  });
+
+  it("opens and closes Playwright UI from its tab", async () => {
+    await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Playwright UI" }).click();
+    const card = page.getByRole("region", { name: "Playwright UI" });
+    await pwExpect(card).toContainText("npx playwright test --ui --config=playwright.config.ts");
+    // Earlier tests generated specs, so DOMinion's projects are in the config by now.
+    await pwExpect(card).toContainText("dominion-");
+    await card.getByRole("button", { name: "Open Playwright UI" }).click();
+    await pwExpect(card.getByRole("status")).toContainText("Open in its own window");
+    await card.getByRole("button", { name: "Close Playwright UI" }).click();
+    await pwExpect(card.getByRole("button", { name: "Open Playwright UI" })).toBeVisible();
+    await pwExpect(card).not.toContainText("stopped with exit code");
   });
 
   it("shows settings without secret values", async () => {

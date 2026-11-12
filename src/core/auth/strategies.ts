@@ -11,8 +11,10 @@ import {
 import type { FormRoleConfig, ManualRoleConfig } from "../config/schema";
 import { DominionError, errorMessage } from "../errors";
 import { relativePosix } from "../fs";
+import { packageName } from "../package-info";
 import { explainLaunchError, type PlaywrightTestModule } from "../playwright/resolve";
 import type { Prompter } from "../prompter";
+import { readLoginScriptState } from "../setup/login-builder";
 import { redactText } from "../redact";
 import { generateTotp } from "./totp";
 import type { LoginContext, LoginCredentials, LoginEnvironment } from "./types";
@@ -163,10 +165,13 @@ export async function loginWithForm(ctx: StrategyContext, role: FormRoleConfig):
       await (loginFn as (arg: LoginContext) => Promise<void>)(loginContext);
     } catch (error) {
       const shot = await failureScreenshot(ctx, page);
+      const template = readLoginScriptState(scriptPath, packageName()).kind === "template";
       throw new DominionError(`The login script failed for ${ctx.env.name}/${ctx.roleName}: ${redactText(errorMessage(error))}`, {
         code: "LOGIN_FAILED",
         cause: error,
-        hint: `Check the selectors in ${scriptLabel}${shot ? `; a screenshot was saved to ${shot}` : ""}. Tip: npx playwright codegen ${ctx.env.baseURL}${ctx.env.auth.loginUrl}`,
+        hint: template
+          ? `${scriptLabel} is still DOMinion's template, which looks for an "Email" field. Set it up for your login page first: in \`npx dominion ui\`, Setup step 6 (Detect from login page, then Save login script), or edit the lines marked ADJUST.${shot ? ` Screenshot: ${shot}` : ""}`
+          : `Check the selectors in ${scriptLabel}${shot ? `; a screenshot was saved to ${shot}` : ""}. Tip: npx playwright codegen ${ctx.env.baseURL}${ctx.env.auth.loginUrl}`,
       });
     }
     const pattern = loggedOutPatternFor(ctx.env);

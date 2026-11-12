@@ -8,7 +8,7 @@ import { DominionError } from "../../core/errors";
 import { relativePosix } from "../../core/fs";
 import { findPlaywrightConfigs } from "../../core/init/detect";
 import { snapshotFiles } from "../../core/orchestrator/changes";
-import { secretEnvVarNames } from "../../core/orchestrator/pipeline";
+import { playwrightCommandEnv } from "../../core/orchestrator/pipeline";
 import { hasDominionHeader } from "../../core/playwright/lint";
 import { testProjectName } from "../../core/playwright/patch";
 import { loadPlaywright } from "../../core/playwright/resolve";
@@ -89,9 +89,8 @@ export function registerRunCommand(program: Command): void {
           selection.push(...projects.map((p) => `--project=${p}`));
         }
       }
-      const env: NodeJS.ProcessEnv = { ...process.env };
       // The setup projects need credentials to log in; only API keys are removed from the test env.
-      for (const name of secretEnvVarNames(loaded)) if (/^(ANTHROPIC|CLAUDE_CODE_OAUTH|AWS_|ANTHROPIC_FOUNDRY)/.test(name)) delete env[name];
+      const env = playwrightCommandEnv(loaded);
       const child = spawn(process.execPath, [cliPath, "test", `--config=${configPath}`, ...selection, ...userArgs], { cwd: loaded.root, stdio: "inherit", env });
       process.exitCode = await new Promise<number>((resolve) => child.on("close", (code) => resolve(code ?? 1)));
     });

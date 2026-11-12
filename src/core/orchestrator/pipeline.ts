@@ -113,6 +113,19 @@ export function secretEnvVarNames(loaded: LoadedConfig): string[] {
   return [...new Set([...WELL_KNOWN_SECRET_ENV_VARS, ...referencedEnvVars(loaded.config).map((r) => r.name)])];
 }
 
+const API_KEY_ENV = /^(ANTHROPIC|CLAUDE_CODE_OAUTH|AWS_|ANTHROPIC_FOUNDRY)/;
+
+/**
+ * The env for Playwright commands a person drives (`dominion run`, the Playwright UI tab): theirs,
+ * minus API keys. Credentials stay, because setup projects log in with them.
+ */
+export function playwrightCommandEnv(loaded: LoadedConfig | undefined, base: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = { ...base };
+  const names: readonly string[] = loaded ? secretEnvVarNames(loaded) : WELL_KNOWN_SECRET_ENV_VARS;
+  for (const name of names) if (API_KEY_ENV.test(name)) delete env[name];
+  return env;
+}
+
 class BudgetExceeded extends DominionError {
   constructor(spent: number, budget: number) {
     super(`The run hit its budget cap: $${spent.toFixed(2)} of $${budget.toFixed(2)} spent.`, {

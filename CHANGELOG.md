@@ -35,6 +35,9 @@ First release.
   - writes the login script from a form it fills in by detecting the login page's fields, then runs a test login.
 
   Minion runner (task and crawl runs) unlocks when the checklist is done. Edits to `dominion.config.ts` only touch plain values and keep comments; computed values are left alone. Running `npx dominion` on its own now says how to get started.
+- **Playwright UI tab:** opens Playwright's UI mode (`playwright test --ui`) for the project in its own window, showing every test, generated or not. It uses the project's Playwright and config, with API keys removed from its environment, and closes when `dominion ui` stops.
+- **CommonJS projects:** `@yourorg/dominion` and `@yourorg/dominion/setup` also ship as CommonJS. Projects without `"type": "module"`, the default for `npm init playwright`, can then run the generated `dominion.setup.ts` in Playwright.
+- **Clearer login errors:** when a login fails because `dominion/auth/login.ts` is still the template, the error says so and points to Setup step 6. Test login also warns about this before you run it.
 - **Local UI:**
   - Start, Run, Flows, Plan review, Results and Settings screens, with a live event stream that survives a page reload.
   - Binds to 127.0.0.1 and requires a per-start token. Host and Origin headers are checked.

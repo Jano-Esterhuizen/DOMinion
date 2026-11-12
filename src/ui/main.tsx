@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { api, type PublicConfig, type SetupResponse } from "./api";
 import { ErrorNote } from "./components";
 import { Link, navigate, usePath } from "./router";
+import { PlaywrightUiScreen } from "./screens/PlaywrightUi";
 import { RunScreen } from "./screens/RunScreen";
 import { SetupScreen } from "./screens/Setup";
 import { StartScreen } from "./screens/StartScreen";
@@ -39,6 +40,7 @@ function App() {
   }, []);
 
   const onSetup = path === "/setup" || path === "/settings";
+  const onPlaywright = path === "/playwright";
   // Re-read on every tab switch: the other tab (or the terminal) may have changed things.
   useEffect(() => {
     void refresh();
@@ -56,6 +58,7 @@ function App() {
   if (error && !setup) screen = <ErrorNote error={error.message} hint={error.hint ?? "Open the link printed by `npx dominion ui` (it carries the access token)."} />;
   else if (!setup) screen = <p className="muted">Loading…</p>;
   else if (onSetup) screen = <SetupScreen setup={setup} config={config} refresh={refresh} />;
+  else if (onPlaywright) screen = <PlaywrightUiScreen />;
   else if (!config) screen = <Locked setup={setup} />;
   else if (runMatch) screen = <RunScreen runId={runMatch[1]!} />;
   else screen = <StartScreen config={config} setup={setup} onSetupChanged={refresh} />;
@@ -75,8 +78,11 @@ function App() {
               </span>
             ) : null}
           </Link>
-          <Link to="/" current={!onSetup}>
+          <Link to="/" current={!onSetup && !onPlaywright}>
             Minion runner
+          </Link>
+          <Link to="/playwright" current={onPlaywright}>
+            Playwright UI
           </Link>
         </nav>
       </header>

@@ -4,8 +4,9 @@ import type { RunRecord } from "../core/orchestrator/types";
 import type { DetectedLoginForm, LoginFormSpec, LoginScriptState } from "../core/setup/login-builder";
 import type { EnvironmentSetup, RoleSetup, SetupItem, SetupState } from "../core/setup/state";
 import type { SetupJob } from "../server/jobs";
+import type { PlaywrightUiStatus } from "../server/playwright-ui";
 
-export type { DetectedLoginForm, DominionEvent, EnvironmentSetup, LoginFormSpec, LoginScriptState, RoleSetup, RunRecord, SetupItem, SetupJob };
+export type { DetectedLoginForm, DominionEvent, EnvironmentSetup, LoginFormSpec, LoginScriptState, PlaywrightUiStatus, RoleSetup, RunRecord, SetupItem, SetupJob };
 
 /** GET /api/setup: the Setup tab's whole state (never contains a secret value). */
 export type SetupResponse = SetupState & { jobs: { playwright: SetupJob | null } };

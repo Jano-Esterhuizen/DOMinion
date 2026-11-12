@@ -367,8 +367,15 @@ function RoleLogin({ env, role, refresh }: { env: string; role: RoleSetup; refre
   }, [polled, env, role.name, refresh]);
 
   const manual = role.strategy === "manual";
+  const template = role.strategy === "form" && role.loginScript?.kind === "template";
   return (
     <li className="role-login" aria-label={`Login ${role.name}`}>
+      {template && login?.state !== "done" ? (
+        <p className="note note-warn">
+          The login script is still DOMinion's template, which looks for an “Email” field. Set it up in <a href={`#login-script-${env}`}>step 6</a> first (Detect from login page, then Save
+          login script), unless your login page matches it.
+        </p>
+      ) : null}
       <div className="row">
         <strong>{role.name}</strong>
         <AuthBadge badge={checked?.badge ?? role.badge} />

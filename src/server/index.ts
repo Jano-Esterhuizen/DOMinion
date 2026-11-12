@@ -9,6 +9,7 @@ import { packageRoot } from "../core/package-info";
 import { activeRedactor } from "../core/redact";
 import type { RunManager, RunManagerOptions } from "../core/runs/manager";
 import { SetupJobs } from "./jobs";
+import { PlaywrightUi, registerPlaywrightUiRoutes, type UiModeLauncher } from "./playwright-ui";
 import { findProjectRoot, ProjectContext } from "./project";
 import { registerEnvRoutes } from "./routes/envs";
 import { registerRunRoutes } from "./routes/runs";
@@ -32,6 +33,8 @@ export interface StartServerOptions {
   uiDir?: string;
   /** Setup tab seams (tests). */
   setup?: SetupRouteOptions;
+  /** Starts the Playwright UI process (tests). */
+  launchPlaywrightUi?: UiModeLauncher;
 }
 
 export interface DominionServer {
@@ -69,6 +72,9 @@ const STATUS_BY_CODE: Record<string, number> = {
   JOB_NOT_FOUND: 404,
   LOGIN_SCRIPT_CUSTOM: 409,
   CONFIG_NOT_EDITABLE: 409,
+  PLAYWRIGHT_UI_UNAVAILABLE: 409,
+  PLAYWRIGHT_MISSING: 409,
+  PLAYWRIGHT_TOO_OLD: 409,
 };
 
 /**
@@ -114,6 +120,8 @@ export async function startServer(options: StartServerOptions): Promise<Dominion
   });
 
   registerSetupRoutes(app, project, new SetupJobs(), options.setup);
+  const playwrightUi = new PlaywrightUi(options.launchPlaywrightUi);
+  registerPlaywrightUiRoutes(app, project, playwrightUi);
   registerEnvRoutes(app, project);
   registerRunRoutes(app, project);
   registerEventStream(app, project);
@@ -148,6 +156,7 @@ export async function startServer(options: StartServerOptions): Promise<Dominion
       const manager = project.manager;
       manager?.stopAll();
       if (manager) await Promise.race([manager.idle(), new Promise((r) => setTimeout(r, 5_000))]);
+      await playwrightUi.stop();
       await app.close();
     },
   };

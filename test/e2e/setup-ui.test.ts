@@ -124,6 +124,9 @@ describe("Setup tab: a Playwright project without DOMinion", () => {
     // 6. Login script: detected from the real login page, then saved by the builder.
     const scriptStep = region(page, /6\. Login script/);
     await pwExpect(scriptStep).toContainText("still the template");
+    // Step 7 warns before anyone tests a login with the untouched template.
+    const templateWarning = region(page, /7\. Test login/).getByText("The login script is still DOMinion's template");
+    await pwExpect(templateWarning).toBeVisible();
     await scriptStep.getByRole("button", { name: "Detect from login page" }).click();
     await pwExpect(scriptStep.getByLabel("Username field: text")).toHaveValue("Email");
     await pwExpect(scriptStep.getByLabel("Password field: text")).toHaveValue("Password");
@@ -131,6 +134,7 @@ describe("Setup tab: a Playwright project without DOMinion", () => {
     await scriptStep.getByRole("button", { name: "Save login script" }).click();
     await pwExpect(scriptStep.getByRole("status")).toHaveText("Saved dominion/auth/login.ts");
     expect(readFileSync(join(root, "dominion", "auth", "login.ts"), "utf8")).toContain('await page.getByLabel("Email", { exact: true }).fill(credentials.username);');
+    await pwExpect(templateWarning).toHaveCount(0);
 
     // 7. Test login.
     const loginStep = region(page, /7\. Test login/);

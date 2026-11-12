@@ -35,6 +35,7 @@ The browser UI opens with two tabs:
   6. **Login script:** *Detect from login page* reads your form and writes `dominion/auth/login.ts` for you.
   7. **Test login.**
 - **Minion runner** unlocks when nothing is left to do. It starts task and crawl runs, shows them live, and holds plan review, flow selection and results.
+- **Playwright UI** opens Playwright's UI mode for the project in its own window, the same as `npx playwright test --ui`. It shows every test: your own and the ones DOMinion generated. In a new setup, generated tests run in the `dominion-<env>-<role>` projects, which log in first. Close it from the tab or by closing its window. It also closes when `dominion ui` stops.
 
 Credentials and the API key are saved to `.env.local`, which Setup adds to `.gitignore` first. They are write-only: the UI shows "saved" or "not set", never the values. The UI only listens on 127.0.0.1 and needs the link `dominion ui` prints, because it carries a per-start token.
 
