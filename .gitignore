@@ -1,0 +1,22 @@
+node_modules/
+dist/
+coverage/
+*.log
+*.tsbuildinfo
+*.tgz
+
+# Local secrets and sessions (never commit)
+.env
+.env.*
+!.env.example
+.auth/
+
+# DOMinion run artifacts and Playwright output
+.dominion/
+test-results/
+playwright-report/
+blob-report/
+
+# Scratch output from e2e tests
+test/.tmp/
+.playwright-mcp/

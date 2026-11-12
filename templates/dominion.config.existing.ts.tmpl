@@ -1,0 +1,37 @@
+import { defineConfig } from "{{packageName}}";
+
+// DOMinion configuration for an existing Playwright suite. Commit this file.
+// The project section below was detected by `dominion init`: generated tests follow your suite's
+// fixtures, page objects, naming and auth setup, and are written to project.outputDir.
+// The config names environment variables but never holds secret values.
+export default defineConfig({
+  model: "claude-sonnet-5-5", // overridable per command with --model
+  specsDir: "specs",
+  testIdAttribute: "{{testIdAttribute}}",{{secretEnv}}
+
+  environments: {
+    {{envName}}: {
+      baseURL: "{{baseURL}}",
+      allowedOrigins: ["{{origin}}"], // add your auth/SSO origin here if login redirects elsewhere
+      allowDestructive: false, // when false, agents stop before final submit/pay/delete actions
+      // Lets DOMinion detect expired sessions: a page only logged-in users can open, and where
+      // logged-out users are sent.
+      // auth: { validate: { url: "/account", loggedOutPattern: "/login" } },
+      roles: {
+        guest: { strategy: "none" },
+{{roles}}
+      },
+    },
+  },
+
+{{project}}
+
+  crawl: {
+    maxPages: 200,
+    maxDepth: 4,
+    exclude: ["/logout", "/signout", "/account/delete"],
+    keepQueryParams: [],
+  },
+
+  budgets: { maxTurnsPerAgent: 80, maxUsdPerRun: 10, maxHealAttempts: 3 },
+});

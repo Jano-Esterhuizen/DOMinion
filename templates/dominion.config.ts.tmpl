@@ -1,0 +1,43 @@
+import { defineConfig } from "{{packageName}}";
+
+// DOMinion configuration. Commit this file.
+// It names environment variables but never holds secret values: put credentials in .env.local
+// (gitignored) or in your CI secrets. Use dedicated test accounts on non-production environments.
+export default defineConfig({
+  model: "claude-sonnet-5-5", // overridable per command with --model
+  testDir: "tests/agent",
+  specsDir: "specs",
+  pageObjects: true, // generate page objects for pages used by 2+ flows
+  testIdAttribute: "data-testid",
+
+  environments: {
+    {{envName}}: {
+      baseURL: "{{baseURL}}",
+      allowedOrigins: ["{{origin}}"], // add your auth/SSO origin here if login redirects elsewhere
+      allowDestructive: false, // when false, agents stop before final submit/pay/delete actions
+      auth: {
+        loginUrl: "/login",
+        loginScript: "./dominion/auth/login.ts",
+        // validate.url: a page only logged-in users can open.
+        // loggedOutPattern: where the app sends logged-out users.
+        validate: { url: "/account", loggedOutPattern: "/login" },
+      },
+      roles: {
+        guest: { strategy: "none" },
+        customer: { strategy: "form", userEnv: "{{envPrefix}}_CUSTOMER_USER", passEnv: "{{envPrefix}}_CUSTOMER_PASS" },
+        // admin: { strategy: "form", userEnv: "{{envPrefix}}_ADMIN_USER", passEnv: "{{envPrefix}}_ADMIN_PASS", totpEnv: "{{envPrefix}}_ADMIN_TOTP" },
+        // sso_user: { strategy: "manual" }, // log in by hand once; DOMinion saves the session
+        // api_user: { strategy: "api", tokenEnv: "{{envPrefix}}_API_TOKEN", apiLogin: "./dominion/auth/api-login.ts" }, // log in through an endpoint (see the README)
+      },
+    },
+  },
+
+  crawl: {
+    maxPages: 200,
+    maxDepth: 4,
+    exclude: ["/logout", "/signout", "/account/delete"],
+    keepQueryParams: [],
+  },
+
+  budgets: { maxTurnsPerAgent: 80, maxUsdPerRun: 10, maxHealAttempts: 3 },
+});

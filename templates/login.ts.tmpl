@@ -1,0 +1,28 @@
+// DOMinion login script for roles with strategy "form". Commit this file.
+//
+// DOMinion runs this function with credentials read from the env vars named in
+// dominion.config.ts, then waits until the URL no longer matches auth.validate.loggedOutPattern
+// and saves the session to .auth/<env>-<role>.json. Agents and generated tests start from that
+// saved session, so they never see a password.
+//
+// Adjust every line marked ADJUST to match your login page. Never hardcode credentials here.
+// Tip: `npx playwright codegen <your login URL>` records the clicks for you.
+import type { LoginContext } from "{{packageName}}";
+
+export default async function login({ page, env, credentials }: LoginContext) {
+  await page.goto(env.baseURL + env.auth.loginUrl);
+
+  // ADJUST: the label of your username or email field
+  await page.getByLabel("Email").fill(credentials.username);
+  // ADJUST: the label of your password field
+  await page.getByLabel("Password").fill(credentials.password);
+
+  if (credentials.totp) {
+    // ADJUST: the label of your one-time code field (only used by roles with totpEnv).
+    // If your app asks for the code on a second screen, move this block after the click below.
+    await page.getByLabel("Authentication code").fill(credentials.totp());
+  }
+
+  // ADJUST: the name of your sign-in button
+  await page.getByRole("button", { name: /sign in|log in/i }).click();
+}

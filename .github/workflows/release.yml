@@ -1,0 +1,84 @@
+name: release
+
+# Publishes the package when a version tag (v1.2.3) is pushed. See RELEASING.md.
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write # GitHub release
+  id-token: write # npm provenance
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: release
+    env:
+      REGISTRY: ${{ vars.NPM_REGISTRY_URL || 'https://registry.npmjs.org' }}
+      ACCESS: ${{ vars.NPM_ACCESS || 'public' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: ${{ env.REGISTRY }}
+
+      - name: Tag matches package.json
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          if [ "v${version}" != "${GITHUB_REF_NAME}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match package.json version ${version}"
+            exit 1
+          fi
+
+      - name: Changelog has an entry for this version
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v v="$version" '$0 ~ "^## \\[" v "\\]" {found=1; next} found && /^## \[/ {exit} found {print}' CHANGELOG.md > release-notes.md
+          if [ ! -s release-notes.md ]; then
+            echo "::error::CHANGELOG.md has no section for ${version}"
+            exit 1
+          fi
+
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm test
+
+      - name: Check the package contents
+        run: |
+          npm pack --dry-run --json > pack.json
+          node -e '
+            const files = require("./pack.json")[0].files.map((f) => f.path);
+            const required = ["dist/cli/index.js", "dist/index.js", "dist/index.d.ts", "dist/setup.js", "dist/setup.d.ts", "dist/ui/index.html", "dist/prompts/planner.md", "templates/dominion.config.ts.tmpl", "README.md", "CHANGELOG.md"];
+            const missing = required.filter((p) => !files.includes(p));
+            const unexpected = files.filter((p) => /^(src|test|docs)\//.test(p) || /\.env|\.auth\//.test(p));
+            if (missing.length || unexpected.length) {
+              console.error("missing:", missing, "unexpected:", unexpected);
+              process.exit(1);
+            }
+            console.log(files.length + " files OK");
+          '
+
+      # prepublishOnly would re-run the whole suite; it already ran above.
+      - name: Publish
+        run: |
+          if [ "$REGISTRY" = "https://registry.npmjs.org" ]; then
+            npm publish --ignore-scripts --access "$ACCESS" --provenance
+          else
+            npm publish --ignore-scripts --access "$ACCESS"
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: GitHub release
+        run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file release-notes.md --verify-tag
+        env:
+          GH_TOKEN: ${{ github.token }}

@@ -1,0 +1,50 @@
+# Changelog
+
+All notable changes to DOMinion are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+**Prompt changes count:** a change to a default agent prompt (`src/prompts/`) that alters generated output is at least a minor version and gets its own entry under **Prompts**. Teams that ejected prompts with `dominion prompts eject` should compare their copies after upgrading.
+
+## [Unreleased]
+
+## [0.1.0] - unreleased
+
+First release.
+
+### Added
+
+- **CLI:** `init`, `doctor`, `auth`, `task`, `crawl`, `generate`, `heal`, `run`, `runs`, `prompts` and `ui`. Every command exits non-zero on failure, so each one works in CI.
+- **Config:** `dominion.config.ts` with `defineConfig`, validated with clear errors. It is loaded without a build step, and `.env.local` is read for credentials.
+- **Authentication:**
+  - Strategies: `form` (with TOTP MFA), `manual`, `api`, `existing` and `none`.
+  - Sessions are validated against `auth.validate`, refreshed automatically for `form` and `api` roles, and saved to `.auth/<env>-<role>.json`.
+  - `api` logins can return cookies, headers or localStorage. Headers are applied everywhere the session is used and redacted like credentials.
+- **Task mode:**
+  - The planner explores the app through Playwright MCP and writes a Markdown plan, which you approve in the terminal or the UI.
+  - The generator writes the spec using verified locators and the test generation rules, and every file is linted before it is saved.
+  - DOMinion runs the tests itself, and the healer fixes failures up to an attempt limit. Real application bugs become `test.fixme` with the reason.
+- **Crawl mode:**
+  - A deterministic same-origin crawl that sends GET requests only, deduplicates URLs by pattern, and stops on session loss or CAPTCHAs.
+  - A flow discovery agent that works from the sitemap, with a coverage view, flow selection, and planning two flows at a time.
+- **Existing Playwright projects:**
+  - Detection and a project profile, plus `playwright.dominion.config.ts` that extends your config without changing it.
+  - Generated tests reuse your fixtures, page objects, naming and auth setup.
+  - Hand-written files are never edited; changes to them come as proposed diffs. Flows your suite already covers are skipped, and `doctor` checks for profile drift.
+- **Local UI:**
+  - Start, Run, Flows, Plan review, Results and Settings screens, with a live event stream that survives a page reload.
+  - Binds to 127.0.0.1 and requires a per-start token. Host and Origin headers are checked.
+- **Prompt overrides:**
+  - Commit `dominion/prompts/<name>.md` to replace a default prompt. `dominion prompts eject` copies defaults to start from.
+  - `doctor` flags unknown placeholders and misnamed files.
+- **Setting up a new project:** `init` keeps stock Playwright projects (create-playwright's `chromium`) from running the generated tests without DOMinion's session by adding `testIgnore` to them, with your consent.
+- **Credentials in existing projects:** `secretEnv` config for credentials an existing suite reads. `init` fills it from the suite's sources, and `.env.local` entries with credential-like names are redacted even when the config doesn't list them.
+- **Safety:**
+  - Secret redaction across logs, events, reports and run files.
+  - A tool guard for agents: no secret files, no shell, origins restricted to `allowedOrigins`, no irreversible actions unless `allowDestructive`.
+  - Budgets for turns and USD per run.
+
+### Prompts
+
+- Initial `planner`, `generator`, `healer`, `discovery`, `analysis` and `rules` prompts.
+
+[Unreleased]: https://github.com/yourorg/dominion/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/yourorg/dominion/releases/tag/v0.1.0
