@@ -6,7 +6,7 @@ All notable changes to DOMinion are listed here. The format follows [Keep a Chan
 
 ## [Unreleased]
 
-## [0.1.0] - unreleased
+## [0.1.0] - 2026-11-13
 
 First release.
 
