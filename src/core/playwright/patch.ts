@@ -313,3 +313,58 @@ export function ensureSetupFile(testDir: string): { path: string; status: "creat
 export function configDirOf(configPath: string): string {
   return dirname(configPath);
 }
+
+/** True when the text parses as TypeScript/JavaScript without syntax errors. */
+export function parsesCleanly(text: string, configPath: string): boolean {
+  try {
+    const project = new Project({ useInMemoryFileSystem: true, skipAddingFilesFromTsConfig: true, compilerOptions: { allowJs: true } });
+    const sf = project.createSourceFile(/\.[cm]?ts$/.test(configPath) ? "check.ts" : "check.js", text, { overwrite: true });
+    return project.getProgram().getSyntacticDiagnostics(sf).length === 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Undoes what DOMinion added to a Playwright config: the managed block of projects, the
+ * sessionHeaders import, and `testIgnore: "<pattern>"` on stock projects (`dominion uninstall`).
+ * Each piece is removed in the exact shape patchPlaywrightConfig and ignoreTestsInProjects wrote
+ * it, so a config DOMinion edited goes back to what it was. Anything else is left alone.
+ */
+export function removeDominionFromPlaywrightConfig(text: string, testIgnorePattern: string): { text: string; removed: string[] } {
+  const eol = text.includes("\r\n") ? "\r\n" : "\n";
+  const removed: string[] = [];
+  let next = text;
+
+  const start = next.indexOf(MANAGED_START);
+  const end = next.indexOf(MANAGED_END);
+  if (start !== -1 && end > start) {
+    const lineStart = next.lastIndexOf("\n", start - 1) + 1;
+    const newline = next.indexOf("\n", end + MANAGED_END.length);
+    const lineEnd = newline === -1 ? next.length : newline + 1;
+    next = next.slice(0, lineStart) + next.slice(lineEnd);
+    removed.push("DOMinion's projects");
+  }
+
+  const importLine = sessionHeadersImport();
+  if (next.includes(`${eol}${importLine}`)) {
+    next = next.replace(`${eol}${importLine}`, "");
+    removed.push("the sessionHeaders import");
+  } else if (next.startsWith(`${importLine}${eol}`)) {
+    next = next.slice(importLine.length + eol.length);
+    removed.push("the sessionHeaders import");
+  }
+
+  // The three shapes ignoreTestsInProjects inserts: on its own line, inline after a comma, or
+  // appended after a `name` that had no comma.
+  const property = `testIgnore: ${JSON.stringify(testIgnorePattern)}`.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  let count = 0;
+  for (const shape of [new RegExp(`\\r?\\n[ \\t]*${property},`, "g"), new RegExp(` ${property},`, "g"), new RegExp(`, ${property}`, "g")]) {
+    next = next.replace(shape, () => {
+      count++;
+      return "";
+    });
+  }
+  if (count) removed.push(`testIgnore: ${JSON.stringify(testIgnorePattern)}${count > 1 ? ` (${count} projects)` : ""}`);
+  return { text: next, removed };
+}

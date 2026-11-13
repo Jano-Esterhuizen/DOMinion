@@ -10,6 +10,7 @@ import { registerRunCommand } from "./commands/run";
 import { registerRunsCommand } from "./commands/runs";
 import { registerTaskCommands } from "./commands/task";
 import { registerUiCommand } from "./commands/ui";
+import { registerUninstallCommand } from "./commands/uninstall";
 
 /** Builds the `dominion` CLI. Commands are thin: they parse flags and call src/core. */
 export function createProgram(): Command {
@@ -30,6 +31,7 @@ export function createProgram(): Command {
   registerRunsCommand(program);
   registerPromptsCommand(program);
   registerUiCommand(program);
+  registerUninstallCommand(program);
   // `npx dominion` on its own: say how to get started instead of a wall of help.
   program.allowExcessArguments(true).action(() => {
     if (program.args.length) {

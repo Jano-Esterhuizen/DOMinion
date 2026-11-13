@@ -184,6 +184,7 @@ Run `init` in a repo that already has a Playwright suite. DOMinion scans it for 
 | `dominion run [args...]` | Run generated tests through your Playwright config; extra args go to `playwright test` |
 | `dominion runs` | List past runs with status, test results and cost (`--json`, `--limit`, `--env`, `--status`) |
 | `dominion prompts` | Show which agent prompts are overridden; `prompts eject [names...]` copies defaults to edit |
+| `dominion uninstall` | Remove everything DOMinion added to the project, then the package (`--dry-run`, `--yes`, `--keep-tests`, `--keep-package`) |
 
 Every command exits non-zero on failure. Without `--auto-approve`, `task` and `crawl` stop after planning and wait for your approval. In CI (when `CI` is set) or without a terminal, they don't wait for input; instead they tell you to pass `--auto-approve`. Set `DOMINION_DEBUG=1` for stack traces.
 
@@ -298,6 +299,22 @@ npx dominion prompts eject planner   # copy the default planner prompt to domini
 - **Session keeps "expiring":** `auth.validate.url` must be a page only logged-in users can open, and `loggedOutPattern` must match where logged-out users end up.
 - **CAPTCHA or bot challenge:** turn bot protection off for the test environment or allowlist the machine. DOMinion stops instead of solving it.
 - **`playwright.config.ts` could not be patched:** DOMinion prints the project block to add by hand. This happens when `projects` is built dynamically or the config is CommonJS.
+
+## Uninstalling
+
+```sh
+npx dominion uninstall --dry-run   # list what would be removed
+npx dominion uninstall             # show the list, ask, remove, then uninstall the package
+```
+
+It removes what DOMinion added:
+
+- `dominion.config.ts`, `dominion/`, `.dominion/`, its saved logins in `.auth/`, and `playwright.dominion.config.ts`;
+- the generated tests, page objects and plans (files that start with DOMinion's header; `--keep-tests` keeps them);
+- its edits to your Playwright config: its projects block, the `sessionHeaders` import and the `testIgnore` it added. A config DOMinion edited goes back to exactly what it was;
+- its variables in `.env.local` (the API key and role credentials). Your own variables, including your suite's filled-in credentials, stay. If nothing else is left in the file, it is deleted.
+
+Hand-written files are never touched. The `.gitignore` entries stay, because they keep secrets out of git.
 
 ## Development
 
