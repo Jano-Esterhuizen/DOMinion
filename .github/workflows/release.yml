@@ -46,7 +46,8 @@ jobs:
             exit 1
           fi
 
-      - run: npm ci
+      # package-lock.json is written by npm 11; the npm 10 bundled with Node 22 rejects it.
+      - run: npx --yes npm@11 ci
       - run: npx playwright install --with-deps chromium
       - run: npm run typecheck
       - run: npm run build
