@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import { buildMcpConfig } from "../../src/core/mcp";
 import { flowSlugFromRequest, newRunId, RUN_ID_RE, slugify } from "../../src/core/orchestrator/ids";
@@ -148,8 +148,11 @@ describe("JSON report parsing", () => {
   });
 
   it("passes file filters Playwright can match on every OS", () => {
-    expect(fileFilter("C:\\repo", "C:\\repo\\tests\\agent\\cart\\a.spec.ts")).toBe("tests/agent/cart/a\\.spec\\.ts");
-    expect(fileFilter("/repo", "/repo/tests/a (1).spec.ts")).toBe("tests/a \\(1\\)\\.spec\\.ts");
+    // An absolute path in this OS's own form: C:\repo\... on Windows, /repo/... elsewhere.
+    const root = resolve("/repo");
+    expect(fileFilter(root, join(root, "tests", "agent", "cart", "a.spec.ts"))).toBe("tests/agent/cart/a\\.spec\\.ts");
+    expect(fileFilter(root, join(root, "tests", "a (1).spec.ts"))).toBe("tests/a \\(1\\)\\.spec\\.ts");
+    expect(fileFilter(root, "tests\\agent\\b.spec.ts")).toBe("tests/agent/b\\.spec\\.ts");
   });
 });
 

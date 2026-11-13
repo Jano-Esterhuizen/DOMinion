@@ -123,8 +123,9 @@ describe("dominion uninstall", () => {
     expect(readFileSync(join(root, "tests/example.spec.ts"), "utf8")).toBe(HANDWRITTEN_TEST);
     expect(existsSync(join(root, "specs/notes.md"))).toBe(true);
     expect(readFileSync(join(root, ".gitignore"), "utf8")).toContain(".env.local");
-    // .env.local keeps only what DOMinion did not add.
-    expect(readFileSync(join(root, ".env.local"), "utf8")).toBe("MY_OWN_VAR=keep-me\n");
+    // .env.local keeps only what DOMinion did not add (in the file's own line endings: a Windows
+    // checkout of the template has CRLF).
+    expect(readFileSync(join(root, ".env.local"), "utf8").replace(/\r\n/g, "\n")).toBe("MY_OWN_VAR=keep-me\n");
 
     const again = await planUninstall(root);
     expect(again.steps).toEqual([]);
@@ -167,7 +168,7 @@ test('log in', async ({ page }) => {
     expect(existsSync(join(root, "tests/generated"))).toBe(false);
     expect(readFileSync(join(root, "tests/login.spec.ts"), "utf8")).toBe(login);
     expect(readFileSync(join(root, "playwright.config.ts"), "utf8")).toBe(originalConfig);
-    expect(readFileSync(join(root, ".env.local"), "utf8")).toBe("E2E_USER=someone@example.test\n");
+    expect(readFileSync(join(root, ".env.local"), "utf8").replace(/\r\n/g, "\n")).toBe("E2E_USER=someone@example.test\n");
     expect(plan.kept.join("\n")).toContain("your suite's own credentials");
   });
 
