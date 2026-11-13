@@ -17,7 +17,9 @@ export function makeTempDir(prefix: string): string {
 
 export function removeDir(dir: string): void {
   if (process.env.DOMINION_KEEP_TMP) return; // keep temp consumers around for debugging
-  rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+  // On Windows, processes that just exited (a closed browser, a killed Playwright UI) can hold the
+  // folder for a few seconds; rmSync retries EBUSY/EPERM with a growing delay (~10s in total).
+  rmSync(dir, { recursive: true, force: true, maxRetries: 12, retryDelay: 150 });
 }
 
 export function writeFiles(root: string, files: Record<string, string>): void {
