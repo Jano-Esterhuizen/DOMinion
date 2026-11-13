@@ -17,7 +17,16 @@ afterEach(async () => {
   server = undefined;
   restoreEnv?.();
   restoreEnv = undefined;
-  if (root) removeDir(root);
+  if (root) {
+    try {
+      removeDir(root);
+    } catch (error) {
+      // GitHub's Windows runners can keep a folder locked well after the processes using it are
+      // gone (EBUSY, often antivirus scanning). The tests above already checked that Playwright UI
+      // stopped; a leftover temp folder under test/.tmp is harmless.
+      if (!(process.platform === "win32" && (error as NodeJS.ErrnoException).code === "EBUSY")) throw error;
+    }
+  }
   root = undefined;
 });
 
