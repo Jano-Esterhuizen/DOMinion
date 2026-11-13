@@ -36,7 +36,7 @@ function initProject(name: string): string {
   writeFiles(root, {
     "package.json": JSON.stringify({ name: "app", private: true, type: "module" }),
     "playwright.config.ts": 'import { defineConfig } from "@playwright/test";\nexport default defineConfig({ testDir: "./tests" });\n',
-    "dominion.config.ts": renderTemplate("dominion.config.ts.tmpl", { packageName: "@yourorg/dominion", envName: "staging", baseURL: "http://localhost:3000", origin: "http://localhost:3000", envPrefix: "STAGING" }),
+    "dominion.config.ts": renderTemplate("dominion.config.ts.tmpl", { packageName: "dominion-playwright", envName: "staging", baseURL: "http://localhost:3000", origin: "http://localhost:3000", envPrefix: "STAGING" }),
   });
   return root;
 }
@@ -139,7 +139,7 @@ describe("editing a compact existing-suite config", () => {
     const root = tmp("edit-compact");
     writeFiles(root, {
       "package.json": JSON.stringify({ name: "app", private: true, type: "module" }),
-      "dominion.config.ts": 'import { defineConfig } from "@yourorg/dominion";\nexport default defineConfig({\n  environments: {\n    staging: { baseURL: "http://localhost:3000", roles: { user: { strategy: "none" } } },\n  },\n});\n',
+      "dominion.config.ts": 'import { defineConfig } from "dominion-playwright";\nexport default defineConfig({\n  environments: {\n    staging: { baseURL: "http://localhost:3000", roles: { user: { strategy: "none" } } },\n  },\n});\n',
     });
     let loaded = await updateEnvironment(await loadConfig({ cwd: root }), "staging", { validateUrl: "/account", loggedOutPattern: "/login" });
     loaded = await addRole(loaded, "staging", { name: "support-agent", strategy: "manual" });
@@ -161,24 +161,24 @@ describe("login script builder", () => {
   it("writes a script that reads credentials only, and recognises its own output", () => {
     const root = tmp("builder");
     const path = join(root, "dominion", "auth", "login.ts");
-    const script = renderLoginScript(spec, "@yourorg/dominion");
+    const script = renderLoginScript(spec, "dominion-playwright");
     expect(script).toContain('await page.getByLabel("Username", { exact: true }).fill(credentials.username);');
     expect(script).toContain('await page.getByPlaceholder("Password", { exact: true }).fill(credentials.password);');
     expect(script).toContain('await page.getByRole("button", { name: "Log in", exact: true }).click();');
     expect(script).toContain('await page.locator("[data-test=\\"otp\\"]").fill(credentials.totp());');
     expect(script.indexOf('name: "Log in"')).toBeLessThan(script.indexOf("credentials.totp()")); // code on a second screen
 
-    expect(readLoginScriptState(path, "@yourorg/dominion")).toEqual({ kind: "missing" });
-    writeFiles(root, { "dominion/auth/login.ts": renderTemplate("login.ts.tmpl", { packageName: "@yourorg/dominion" }) });
-    expect(readLoginScriptState(path, "@yourorg/dominion").kind).toBe("template");
-    writeLoginScript(path, spec, "@yourorg/dominion");
-    expect(readLoginScriptState(path, "@yourorg/dominion")).toEqual({ kind: "builder", spec });
+    expect(readLoginScriptState(path, "dominion-playwright")).toEqual({ kind: "missing" });
+    writeFiles(root, { "dominion/auth/login.ts": renderTemplate("login.ts.tmpl", { packageName: "dominion-playwright" }) });
+    expect(readLoginScriptState(path, "dominion-playwright").kind).toBe("template");
+    writeLoginScript(path, spec, "dominion-playwright");
+    expect(readLoginScriptState(path, "dominion-playwright")).toEqual({ kind: "builder", spec });
 
     // Edited by hand: the builder leaves it alone unless told to replace it.
     writeFileSync(path, readFileSync(path, "utf8").replace("page.goto(", "page.goto(/* mine */ "));
-    expect(readLoginScriptState(path, "@yourorg/dominion").kind).toBe("custom");
-    expect(() => writeLoginScript(path, spec, "@yourorg/dominion")).toThrow(/edited by hand/);
-    expect(writeLoginScript(path, spec, "@yourorg/dominion", { overwrite: true }).kind).toBe("builder");
+    expect(readLoginScriptState(path, "dominion-playwright").kind).toBe("custom");
+    expect(() => writeLoginScript(path, spec, "dominion-playwright")).toThrow(/edited by hand/);
+    expect(writeLoginScript(path, spec, "dominion-playwright", { overwrite: true }).kind).toBe("builder");
   });
 
   it("refuses an incomplete form", () => {
@@ -204,7 +204,7 @@ describe("setup checklist", () => {
 
   it("lists credentials, the login script and a first login for a new config", async () => {
     const root = initProject("state-config");
-    writeFiles(root, { "dominion/auth/login.ts": renderTemplate("login.ts.tmpl", { packageName: "@yourorg/dominion" }) });
+    writeFiles(root, { "dominion/auth/login.ts": renderTemplate("login.ts.tmpl", { packageName: "dominion-playwright" }) });
     const state = await getSetupState(root);
     const byId = Object.fromEntries(state.items.map((i) => [i.id, i]));
     expect(byId.dominion?.status).toBe("done");

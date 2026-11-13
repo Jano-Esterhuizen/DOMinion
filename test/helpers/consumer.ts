@@ -16,7 +16,7 @@ export const FIXTURE_ENV: Record<string, string> = {
 export const FIXTURE_SECRET_VALUES = Object.values(FIXTURE_ENV);
 
 /** Login script for the fixture app's two-step (password, then code) flow. */
-export const FIXTURE_LOGIN_SCRIPT = `import type { LoginContext } from "@yourorg/dominion";
+export const FIXTURE_LOGIN_SCRIPT = `import type { LoginContext } from "dominion-playwright";
 
 export default async function login({ page, env, credentials }: LoginContext) {
   await page.goto(env.baseURL + env.auth.loginUrl);
@@ -31,7 +31,7 @@ export default async function login({ page, env, credentials }: LoginContext) {
 `;
 
 export function fixtureConfigSource(baseURL: string, extraRoles = ""): string {
-  return `import { defineConfig } from "@yourorg/dominion";
+  return `import { defineConfig } from "dominion-playwright";
 
 export default defineConfig({
   environments: {
@@ -89,12 +89,12 @@ export default defineConfig({
 `;
 
 /**
- * Installs this repo as node_modules/@yourorg/dominion in a consumer (a directory junction), so
+ * Installs this repo as node_modules/dominion-playwright in a consumer (a directory junction), so
  * generated files that import the package (dominion.setup.ts) resolve exactly as when installed.
  * Requires a build (dist/).
  */
 export function linkDominionPackage(root: string): void {
-  const target = join(root, "node_modules", "@yourorg", "dominion");
+  const target = join(root, "node_modules", "dominion-playwright");
   if (existsSync(target)) return;
   mkdirSync(dirname(target), { recursive: true });
   symlinkSync(REPO_ROOT, target, "junction");

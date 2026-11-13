@@ -1,9 +1,17 @@
 {
-  "name": "@yourorg/dominion",
+  "name": "dominion-playwright",
   "version": "0.1.0",
   "description": "DOMinion: AI-driven Playwright test authoring. Crawl a site or describe a flow, review the plan, and get verified, runnable Playwright tests committed to your repo.",
   "type": "module",
-  "license": "UNLICENSED",
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jano-Esterhuizen/DOMinion.git"
+  },
+  "homepage": "https://github.com/Jano-Esterhuizen/DOMinion#readme",
+  "bugs": {
+    "url": "https://github.com/Jano-Esterhuizen/DOMinion/issues"
+  },
   "keywords": [
     "playwright",
     "testing",
@@ -83,7 +91,6 @@
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.3.0",
-    "@yourorg/dominion": "file:../dominion-dist/yourorg-dominion-0.1.0.tgz",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "tsup": "9.0.0",

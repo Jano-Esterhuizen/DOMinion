@@ -1,5 +1,5 @@
 /**
- * `@yourorg/dominion/setup`: used by the generated dominion.setup.ts so that Playwright's setup
+ * `dominion-playwright/setup`: used by the generated dominion.setup.ts so that Playwright's setup
  * projects refresh sessions with exactly the same logic as `npx dominion auth`.
  */
 import { resolve } from "node:path";

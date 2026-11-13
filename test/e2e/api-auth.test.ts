@@ -20,7 +20,7 @@ import { FIXTURE_ENV, FIXTURE_SECRET_VALUES, linkDominionPackage, makeFixtureCon
 import { removeDir } from "../helpers/tmp";
 
 /** Logs in through the fixture's JSON endpoint and returns a bearer header (no cookies). */
-const API_LOGIN = `import type { ApiLoginContext, ApiLoginResult } from "@yourorg/dominion";
+const API_LOGIN = `import type { ApiLoginContext, ApiLoginResult } from "dominion-playwright";
 
 export default async function login({ request, credentials }: ApiLoginContext): Promise<ApiLoginResult> {
   const response = await request.post("/api/login", {
@@ -33,7 +33,7 @@ export default async function login({ request, credentials }: ApiLoginContext): 
 `;
 
 /** Posts the HTML login form with the request context; the Set-Cookie it gets back is the session. */
-const API_COOKIE_LOGIN = `import type { ApiLoginContext } from "@yourorg/dominion";
+const API_COOKIE_LOGIN = `import type { ApiLoginContext } from "dominion-playwright";
 
 export default async function login({ request, credentials }: ApiLoginContext) {
   const response = await request.post("/login", { form: { email: credentials.username!, password: credentials.password! } });
@@ -46,7 +46,7 @@ const API_EMPTY_LOGIN = `export default async function login() {
 }
 `;
 
-const API_LEAKY_LOGIN = `import type { ApiLoginContext } from "@yourorg/dominion";
+const API_LEAKY_LOGIN = `import type { ApiLoginContext } from "dominion-playwright";
 
 export default async function login({ credentials }: ApiLoginContext) {
   throw new Error("the server rejected password " + credentials.password);
@@ -213,7 +213,7 @@ describe("api strategy", () => {
     const patched = patchPlaywrightConfig(configPath, managedEntries(loaded, root));
     expect(patched.status).toBe("patched");
     const configText = readFileSync(configPath, "utf8");
-    expect(configText).toContain('import { sessionHeaders } from "@yourorg/dominion/setup";');
+    expect(configText).toContain('import { sessionHeaders } from "dominion-playwright/setup";');
     expect(configText).toContain('extraHTTPHeaders: sessionHeaders(".auth/staging-apiuser.json")');
     // Re-patching is a no-op (the import is not added twice).
     expect(patchPlaywrightConfig(configPath, managedEntries(loaded, root)).status).toBe("unchanged");

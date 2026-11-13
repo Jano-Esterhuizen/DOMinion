@@ -55,7 +55,7 @@ describe("managed block for api roles", () => {
     writeFileSync(config, 'import { defineConfig } from "@playwright/test";\nimport os from "node:os";\n\nexport default defineConfig({\n  projects: [],\n});\n');
     expect(patchPlaywrightConfig(config, [API_ENTRY]).status).toBe("patched");
     const text = readFileSync(config, "utf8");
-    expect(text.split("\n").slice(0, 3)).toEqual(['import { defineConfig } from "@playwright/test";', 'import os from "node:os";', 'import { sessionHeaders } from "@yourorg/dominion/setup";']);
+    expect(text.split("\n").slice(0, 3)).toEqual(['import { defineConfig } from "@playwright/test";', 'import os from "node:os";', 'import { sessionHeaders } from "dominion-playwright/setup";']);
     expect(patchPlaywrightConfig(config, [API_ENTRY]).status).toBe("unchanged");
     expect(readFileSync(config, "utf8").match(/sessionHeaders } from/g)).toHaveLength(1);
   });
@@ -67,7 +67,7 @@ describe("managed block for api roles", () => {
     patchPlaywrightConfig(config, [FORM_ENTRY]);
     expect(readFileSync(config, "utf8")).not.toContain("sessionHeaders");
     expect(patchPlaywrightConfig(config, [FORM_ENTRY, API_ENTRY]).status).toBe("patched");
-    expect(readFileSync(config, "utf8")).toContain('import { sessionHeaders } from "@yourorg/dominion/setup";');
+    expect(readFileSync(config, "utf8")).toContain('import { sessionHeaders } from "dominion-playwright/setup";');
   });
 
   it("leaves a CommonJS config for the user, with the import in the snippet", () => {
@@ -78,7 +78,7 @@ describe("managed block for api roles", () => {
     const result = patchPlaywrightConfig(config, [API_ENTRY]);
     expect(result.status).toBe("manual");
     expect(result.reason).toMatch(/CommonJS/);
-    expect(result.snippet).toContain('import { sessionHeaders } from "@yourorg/dominion/setup";');
+    expect(result.snippet).toContain('import { sessionHeaders } from "dominion-playwright/setup";');
     expect(readFileSync(config, "utf8")).toBe(source);
   });
 });

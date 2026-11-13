@@ -121,7 +121,7 @@ describe("loadConfig", () => {
     writeFiles(root, {
       "package.json": '{"name":"consumer","type":"module"}',
       "dominion.config.ts": [
-        'import { defineConfig } from "@yourorg/dominion";',
+        'import { defineConfig } from "dominion-playwright";',
         "const base: string = 'https://staging.example.com';",
         "export default defineConfig({",
         "  model: 'claude-sonnet-5-5',",

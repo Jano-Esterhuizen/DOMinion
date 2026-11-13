@@ -10,8 +10,6 @@ Agents never see a password. Deterministic Playwright code logs in, saves a sess
 
 > **Only test applications you own or are authorized to test**, ideally a non-production environment with dedicated test accounts. DOMinion never solves CAPTCHAs or bypasses bot protection.
 
-The package name `@yourorg/dominion` is a placeholder until the scope is decided; replace it with the published name.
-
 ## Requirements
 
 - Node.js 20 or later
@@ -21,10 +19,10 @@ The package name `@yourorg/dominion` is a placeholder until the scope is decided
 ## Quick start
 
 ```sh
-npm install -D @yourorg/dominion && npx dominion ui
+npm install -D dominion-playwright && npx dominion ui
 ```
 
-The browser UI opens with two tabs:
+The package is `dominion-playwright` on npm; the command it installs is `dominion`. The browser UI opens with three tabs:
 
 - **Setup** walks you through everything as a checklist. Each step's button maps to a CLI command:
   1. **Playwright:** sets it up if the project has none (TypeScript or JavaScript, Chromium).
@@ -76,7 +74,7 @@ Each run is recorded under `.dominion/runs/<runId>/` (`run.json`, `events.jsonl`
 ## Configuration
 
 ```ts
-import { defineConfig } from "@yourorg/dominion";
+import { defineConfig } from "dominion-playwright";
 
 export default defineConfig({
   model: "claude-sonnet-5-5",          // overridable per command with --model
@@ -133,7 +131,7 @@ roles: {
 
 ```ts
 // dominion/auth/api-login.ts
-import type { ApiLoginContext, ApiLoginResult } from "@yourorg/dominion";
+import type { ApiLoginContext, ApiLoginResult } from "dominion-playwright";
 
 export default async function login({ request, credentials }: ApiLoginContext): Promise<ApiLoginResult> {
   const response = await request.post("/api/login", {
@@ -311,3 +309,9 @@ npm test            # unit + e2e; e2e uses a local fixture app and real Chromium
 ```
 
 Tests never call the Claude API: agents are replaced by scripted runners that go through the same tool guard. `test/fixture-app/` is the shop the e2e tests run against. Releases are described in [RELEASING.md](RELEASING.md).
+
+## License
+
+DOMinion is proprietary software; see [LICENSE](LICENSE). You may install the `dominion-playwright` package from npm and run it unmodified to test applications you own or are authorized to test.
+
+You may not copy, modify, reuse or redistribute its source code, prompts or templates, even though the code is visible here and in the package. The tests, plans and other files DOMinion generates in your project are yours.

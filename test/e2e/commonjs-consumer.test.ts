@@ -13,7 +13,7 @@ import { removeDir, writeFiles } from "../helpers/tmp";
 
 // Most Playwright projects have no "type": "module" (`npm init playwright` does not add it), so
 // Playwright compiles their tests and config to require() calls. The generated dominion.setup.ts
-// imports `@yourorg/dominion/setup`, which therefore needs a CommonJS build.
+// imports `dominion-playwright/setup`, which therefore needs a CommonJS build.
 let fixture: FixtureApp;
 let root: string;
 
@@ -38,7 +38,7 @@ describe("a CommonJS consumer project", () => {
   it("can require() both public entry points", () => {
     const check = spawnSync(
       process.execPath,
-      ["-e", "const s = require('@yourorg/dominion/setup'); const d = require('@yourorg/dominion'); if (typeof s.setupSession !== 'function' || typeof s.sessionHeaders !== 'function' || typeof d.defineConfig !== 'function') process.exit(2);"],
+      ["-e", "const s = require('dominion-playwright/setup'); const d = require('dominion-playwright'); if (typeof s.setupSession !== 'function' || typeof s.sessionHeaders !== 'function' || typeof d.defineConfig !== 'function') process.exit(2);"],
       { cwd: root, encoding: "utf8" },
     );
     expect(check.stderr).toBe("");

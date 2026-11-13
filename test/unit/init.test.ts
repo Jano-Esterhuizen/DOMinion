@@ -40,14 +40,14 @@ describe("runInit in an empty Playwright project", () => {
     );
 
     const config = readFileSync(join(root, "dominion.config.ts"), "utf8");
-    expect(config).toContain('import { defineConfig } from "@yourorg/dominion";');
+    expect(config).toContain('import { defineConfig } from "dominion-playwright";');
     expect(config).toContain('baseURL: "https://staging.example.com"');
     expect(config).toContain('allowedOrigins: ["https://staging.example.com"]');
     expect(config).toContain('userEnv: "STAGING_CUSTOMER_USER"');
     expect(config).not.toMatch(/\{\{|\}\}/);
 
     const login = readFileSync(join(root, "dominion", "auth", "login.ts"), "utf8");
-    expect(login).toContain('import type { LoginContext } from "@yourorg/dominion";');
+    expect(login).toContain('import type { LoginContext } from "dominion-playwright";');
     expect(login).toContain("ADJUST");
 
     const envLocal = readFileSync(join(root, ".env.local"), "utf8");
@@ -112,7 +112,7 @@ describe("runInit never overwrites", () => {
 
   it("keeps an existing dominion.config.ts and derives .env.local from it", async () => {
     const config = [
-      'import { defineConfig } from "@yourorg/dominion";',
+      'import { defineConfig } from "dominion-playwright";',
       "export default defineConfig({ environments: { qa: { baseURL: 'https://qa.example.com', roles: {",
       "  admin: { strategy: 'form', userEnv: 'QA_ADMIN_USER', passEnv: 'QA_ADMIN_PASS', totpEnv: 'QA_ADMIN_TOTP' },",
       "} } } });",

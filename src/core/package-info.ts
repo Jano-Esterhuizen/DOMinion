@@ -38,7 +38,7 @@ function readOwnPackageJson(): PackageJson {
   return cachedPkg;
 }
 
-/** npm package name, e.g. "@yourorg/dominion". Used in templates and generated imports. */
+/** npm package name, e.g. "dominion-playwright". Used in templates and generated imports. */
 export function packageName(): string {
   return readOwnPackageJson().name;
 }

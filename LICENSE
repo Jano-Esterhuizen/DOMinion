@@ -1,0 +1,57 @@
+DOMinion License
+
+Copyright (c) 2026 Jano Esterhuizen. All rights reserved.
+
+DOMinion (the "Software") is proprietary software. Its source code can be seen on GitHub and inside
+the npm package, but seeing it does not give you any right to use it beyond what this license says.
+
+1. What you may do
+
+You may install the Software from the npm registry (package name "dominion-playwright") and run it,
+unmodified, to plan, generate, run and maintain tests for web applications you own or are
+authorized to test. This permission is free of charge, non-exclusive, non-transferable and
+revocable.
+
+2. What you may not do
+
+Unless the copyright holder gives you permission in writing, you may not:
+
+  a. copy, modify, translate or adapt the Software's source code, prompts or templates, except as
+     section 3 allows;
+  b. use any part of the Software's source code, prompts or templates in other software, products
+     or services, or use them to build a competing product;
+  c. distribute, publish, sublicense, sell, rent or lend the Software or any part of it, including
+     republishing it to a package registry or offering it to others as a hosted service;
+  d. remove or change this license or any copyright notice.
+
+3. What you create is yours
+
+Test plans, tests, page objects, configuration files, login scripts and any other files the
+Software generates or writes into your project belong to you, and this license places no
+restrictions on them.
+
+You may edit the prompt files the Software copies into your project for you to customize (for
+example with `dominion prompts eject`), and use those edited copies with the Software only.
+
+4. Other components and services
+
+The Software depends on open-source packages, which remain under their own licenses. It calls
+third-party services, such as Anthropic's API, with your own credentials; your use of those
+services is governed by their terms, and you are responsible for their costs.
+
+5. No warranty
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OF IT, INCLUDING ANY ACTIONS THE SOFTWARE TAKES IN THE
+APPLICATIONS IT TESTS.
+
+6. Termination
+
+This license ends automatically if you break any of its terms. You must then stop using the
+Software and delete your copies of it. Files you created with it (section 3) remain yours.
+
+To ask for any permission this license does not give, contact the copyright holder through
+https://github.com/Jano-Esterhuizen/DOMinion.

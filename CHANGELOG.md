@@ -36,7 +36,8 @@ First release.
 
   Minion runner (task and crawl runs) unlocks when the checklist is done. Edits to `dominion.config.ts` only touch plain values and keep comments; computed values are left alone. Running `npx dominion` on its own now says how to get started.
 - **Playwright UI tab:** opens Playwright's UI mode (`playwright test --ui`) for the project in its own window, showing every test, generated or not. It uses the project's Playwright and config, with API keys removed from its environment, and closes when `dominion ui` stops.
-- **CommonJS projects:** `@yourorg/dominion` and `@yourorg/dominion/setup` also ship as CommonJS. Projects without `"type": "module"`, the default for `npm init playwright`, can then run the generated `dominion.setup.ts` in Playwright.
+- **License:** DOMinion is proprietary; see [LICENSE](LICENSE). You may install and run the unmodified package, but not copy, modify, reuse or redistribute its code, prompts or templates. Tests and other files it generates in your project are yours.
+- **CommonJS projects:** `dominion-playwright` and `dominion-playwright/setup` also ship as CommonJS. Projects without `"type": "module"`, the default for `npm init playwright`, can then run the generated `dominion.setup.ts` in Playwright.
 - **Clearer login errors:** when a login fails because `dominion/auth/login.ts` is still the template, the error says so and points to Setup step 6. Test login also warns about this before you run it.
 - **Local UI:**
   - Start, Run, Flows, Plan review, Results and Settings screens, with a live event stream that survives a page reload.
@@ -55,5 +56,5 @@ First release.
 
 - Initial `planner`, `generator`, `healer`, `discovery`, `analysis` and `rules` prompts.
 
-[Unreleased]: https://github.com/yourorg/dominion/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/yourorg/dominion/releases/tag/v0.1.0
+[Unreleased]: https://github.com/Jano-Esterhuizen/DOMinion/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/Jano-Esterhuizen/DOMinion/releases/tag/v0.1.0
