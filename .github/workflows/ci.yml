@@ -30,9 +30,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: npm
-      # package-lock.json is written by npm 11. The npm 10 bundled with Node 20 and 22 rejects it
-      # (it expects optional peer packages npm 11 leaves out), so install with npm 11.
-      - run: npx --yes npm@11 ci
+      - run: npm ci
       # Chromium for the e2e tests (real browser against the local fixture app). No API key is
       # needed: agents are replaced by scripted runners in tests.
       - run: npx playwright install --with-deps chromium
